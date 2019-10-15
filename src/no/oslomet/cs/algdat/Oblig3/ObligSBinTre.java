@@ -108,7 +108,31 @@ public class ObligSBinTre<T> implements Beholder<T>
   
   public int antall(T verdi)
   {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    if (tom()){
+      return 0;
+    }
+    int telle = 0;
+    int cmp = 0;
+    Kø<Node<T>> kø = new TabellKø<>();
+    kø.leggInn(rot);
+
+    while (!kø.tom()){
+      if (inneholder(verdi)){
+        Node<T> p = kø.taUt();
+
+        cmp = comp.compare(verdi, p.verdi);
+        if (cmp == 0){
+          telle++;
+        }
+        if (p.venstre != null) kø.leggInn(p.venstre);
+        if (p.høyre != null) kø.leggInn(p.høyre);
+      }
+      else {
+        return 0;
+      }
+    }
+
+    return telle;
   }
   
   @Override
@@ -125,6 +149,8 @@ public class ObligSBinTre<T> implements Beholder<T>
   
   private static <T> Node<T> nesteInorden(Node<T> p)
   {
+    Objects.requireNonNull(p);
+    
     throw new UnsupportedOperationException("Ikke kodet ennå!");
   }
   
