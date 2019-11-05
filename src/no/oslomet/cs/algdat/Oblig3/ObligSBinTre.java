@@ -90,14 +90,80 @@ public class ObligSBinTre<T> implements Beholder<T>
   }
 
   @Override
-  public boolean fjern(T verdi)
-  {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+  public boolean fjern(T verdi){
+
+    if (verdi == null){
+      return false;
+    }
+    Node<T> p = rot;
+    Node<T> q = null;
+
+    while(p != null){
+      int cmp = comp.compare(verdi,p.verdi);
+      if(cmp < 0){
+        q = p;
+        p = p.venstre;
+      }
+      else if(cmp > 0){
+        q = p;
+        p = p.høyre;
+      }
+      else{
+        break;
+      }
+    }
+    if(p==null){
+      return false;
+    }
+    Node<T> b;
+    if(p.venstre == null || p.høyre == null){
+      if(p.venstre != null){
+        b = p.venstre;
+      }
+      else{
+        b = p.høyre;
+      }
+      if(b != null){
+        b.forelder = q;
+      }
+      if(p == rot){
+        rot = b;
+      }
+      else if(p == q.venstre){
+        q.venstre = b;
+      }
+      else{
+        q.høyre = b;
+      }
+
+    }
+    else{
+      Node <T> s = p;
+      Node <T> r = p.høyre;
+      while(r.venstre != null){
+        s = r;
+        r = r.venstre;
+
+      }
+      p.verdi = r.verdi;
+      if(s != p){
+        s.venstre = r.høyre;
+      }
+      else{
+        s.høyre = r.høyre;
+      }
+    }
+    antall--;
+    return true;
   }
 
-  public int fjernAlle(T verdi)
-  {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+  public int fjernAlle(T verdi) {
+    int antallfjernet = 0;
+    while(fjern(verdi)){
+      antallfjernet++;
+    }
+
+    return antallfjernet;
   }
 
   @Override
@@ -144,7 +210,60 @@ public class ObligSBinTre<T> implements Beholder<T>
   @Override
   public void nullstill()
   {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    if(!tom()){
+      nullstill(rot);
+      rot = null;
+      antall = 0;
+    }
+  }
+  public static void nullstill(Node p){
+    if (p == null){
+      return;
+    }
+    else {
+      nullstill(p.venstre);
+      nullstill(p.høyre);
+      p = null;
+    }
+  }
+
+  private static <T> Node<T> førstePostorden(Node<T> p){
+    while (true){
+      if (p.venstre != null){
+        p = p.venstre;
+      }
+      else if (p.høyre != null){
+        p = p.høyre;
+      }
+      else {
+        break;
+      }
+    }
+    return p;
+  }
+
+  private static <T> Node<T> nestePostorden(Node<T> p){
+    if (p.forelder != null && p == p.forelder.venstre) {
+      if (p.forelder != null && p.forelder.høyre == null) {
+        p = p.forelder;
+      }
+      else {
+        p = p.forelder.høyre;
+        while (true) {
+          if (p.venstre != null) {
+            p = p.venstre;
+          }
+          else if (p.høyre != null) {
+            p = p.høyre;
+          }
+          else break;
+        }
+      }
+    }
+    else if (p.forelder != null && p == p.forelder.høyre){
+      p = p.forelder;
+    }
+    return p;
   }
 
   private static <T> Node<T> nesteInorden(Node<T> p) {
@@ -214,9 +333,6 @@ public class ObligSBinTre<T> implements Beholder<T>
         p = stakk.taUt();
       }
       else break; //stakken er tom
-
-      //FORTSETTELSE HER: Breaker ut av løkka hvis vi starter i en verdi uten venstrebarn. Men det gjør vi jo ikke, siden vi starter i rot?
-      //
     }
     str.append("]");
     return str.toString();
@@ -262,6 +378,18 @@ public class ObligSBinTre<T> implements Beholder<T>
     throw new UnsupportedOperationException("Ikke kodet ennå!");
   }
 
+  private static <T> void nesteBladnode(Node<T> p, StringBuilder str){
+    if (p.venstre == null && p.høyre == null){
+      if (str.length() > 1){
+        str.append(", " + p.verdi);
+      }
+      else
+        str.append(p.verdi);
+    }
+    if (p.venstre != null) nesteBladnode(p.venstre, str);
+    if (p.høyre != null) nesteBladnode(p.høyre, str);
+  }
+
   public String bladnodeverdier()
   {
     if (tom()) return "[]";
@@ -269,19 +397,7 @@ public class ObligSBinTre<T> implements Beholder<T>
     StringBuilder str = new StringBuilder();
     str.append("[");
     Node<T> p = rot;
-    while (p.venstre != null){
-      p = p.venstre;
-    }
-    if (nesteInorden(p) == null){
-      str.append(p.verdi);
-    }
-    else while (nesteInorden(p) != null){
-      p = nesteInorden(p);
-      if (p.høyre == null && p.venstre == null){
-        if (str.length() > 1) str.append(", " + p.verdi);
-        else str.append(p.verdi);
-      }
-    }
+    nesteBladnode(p, str);
     str.append("]");
     return str.toString();
   }
@@ -293,35 +409,21 @@ public class ObligSBinTre<T> implements Beholder<T>
     StringBuilder str = new StringBuilder();
     str.append("[");
 
-    TabellStakk<Node<T>> stakk = new TabellStakk<>();
     Node<T> p = rot;
-    stakk.leggInn(p);
+    p = førstePostorden(p);
     str.append(p.verdi);
 
-    /*while (true){
-      if (p.venstre != null){
-        p = p.venstre;
+    while (true){
+      if (p.forelder != null) {
+        p = nestePostorden(p);
+        str.append(", " + p.verdi);
       }
-      else if (p.høyre != null){
-        p = p.høyre;
-      }
-      else {
-        stakk.leggInn(p);
-        break;
-      }
-    }*/
-
-    while (!stakk.tom()){
-      p = stakk.taUt();
-      str.append(", " + p.verdi);
-
-      if (p.venstre != null) stakk.leggInn(p.venstre);
-      if (p.høyre != null) stakk.leggInn(p.høyre);
+      else break;
     }
-
     str.append("]");
     return str.toString();
   }
+
 
   @Override
   public Iterator<T> iterator()
