@@ -368,15 +368,102 @@ public class ObligSBinTre<T> implements Beholder<T>
     return str.toString();
   }
 
-  public String lengstGren()
-  {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
-  }
+    public String lengstGren(){
 
-  public String[] grener()
-  {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
-  }
+        if (tom()){
+            return "[]";
+        }
+
+        StringBuilder str = new StringBuilder();
+        str.append("[" + rot.verdi);
+
+        ArrayDeque <Node <T>> kø =  new ArrayDeque<>();
+        kø.addLast(rot);
+        Node <T> temp = rot;
+        while(!kø.isEmpty()){
+            temp = kø.removeFirst();
+            if(temp.høyre != null){
+                kø.addLast(temp.høyre);
+            }
+            if(temp.venstre != null){
+                kø.addLast(temp.venstre);
+            }
+        }
+
+        Node <T> p = temp;
+        Stakk<Node<T>> stakk = new TabellStakk<>();
+        while(p.forelder != null){
+            stakk.leggInn(p);
+            p = p.forelder;
+        }
+        while(stakk.antall() != 0){
+            str.append(", " + stakk.taUt().verdi);
+        }
+
+        str.append("]");
+        return str.toString();
+    }
+
+
+    public String[] grener() {
+
+        Stakk<Node<T>> stakk = new TabellStakk<>();
+        List<String> liste = new ArrayList<String>();
+        StringBuilder str = new StringBuilder();
+        String[] gren;
+
+        if(tom()){                                //returnerer en tom liste hvis treet er tomt
+            String[] tomliste = new String[0];
+            return tomliste;
+        }
+
+        Node <T> p = rot;
+        while(p.venstre != null){
+            p = p.venstre;
+        }
+
+
+        while(nesteInorden(p) != null) {
+
+            if (p.venstre == null && p.høyre == null) {
+                Node<T> t = p;                  // node for å telle opp fra blad til rot, uten å endre p
+                str.append("["+rot);
+                while (t.forelder != null) {
+                    stakk.leggInn(t);
+                    t = t.forelder;
+                }
+
+                while(stakk.antall() != 0){
+                    str.append(", "+ stakk.taUt().verdi);
+                }
+                str.append("]");
+                liste.add(str.toString());
+                str.setLength(0);
+            }
+            p = nesteInorden(p);
+        }
+        if(p.venstre == null && p.høyre == null){
+            Node<T> t = p;
+            str.append("["+rot);
+            while (t.forelder != null) {
+                stakk.leggInn(t);
+                t = t.forelder;
+            }
+
+            while(stakk.antall() != 0){
+                str.append(", "+ stakk.taUt().verdi);
+            }
+            str.append("]");
+            liste.add(str.toString());
+            str.setLength(0);
+        }
+
+
+        gren = new String[liste.size()];
+        liste.toArray(gren);
+
+        return gren;
+    }
 
   private static <T> void nesteBladnode(Node<T> p, StringBuilder str){
     if (p.venstre == null && p.høyre == null){
@@ -439,7 +526,10 @@ public class ObligSBinTre<T> implements Beholder<T>
 
     private BladnodeIterator()  // konstruktør
     {
-      throw new UnsupportedOperationException("Ikke kodet ennå!");
+        if(rot == null){
+            return;
+        }
+        p = førstePostorden(p);
     }
 
     @Override
@@ -448,10 +538,36 @@ public class ObligSBinTre<T> implements Beholder<T>
       return p != null;  // Denne skal ikke endres!
     }
 
+    public Node nesteBlad(Node<T> p){
+          if (p.venstre == null && p.høyre == null){
+              return p;
+          }
+          else if (p.venstre != null) nesteBlad(p.venstre);
+          else if (p.høyre != null) nesteBlad(p.høyre);
+          else {
+              throw new NoSuchElementException();
+          }
+          return p;
+      }
+
     @Override
-    public T next()
-    {
-      throw new UnsupportedOperationException("Ikke kodet ennå!");
+    public T next() {
+        if(!hasNext()){
+            throw new NoSuchElementException();
+        }
+        p = nesteBlad(p);
+       /* if(p.venstre == null && p.høyre == null){
+            return p.verdi;
+        }
+        if(p.venstre != null){
+            p = p.venstre;
+            next();
+        }
+        if (p.høyre != null){
+            p = p.høyre;
+            next();
+        }*/
+        return p.verdi;
     }
 
     @Override
