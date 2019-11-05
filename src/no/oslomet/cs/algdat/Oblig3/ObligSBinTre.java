@@ -42,7 +42,7 @@ public class ObligSBinTre<T> implements Beholder<T>
     antall = 0;
     comp = c;
   }
-  
+
   @Override
   public boolean leggInn(T verdi)
   {
@@ -70,7 +70,7 @@ public class ObligSBinTre<T> implements Beholder<T>
     antall++;
     return true;
   }
-  
+
   @Override
   public boolean inneholder(T verdi)
   {
@@ -88,24 +88,24 @@ public class ObligSBinTre<T> implements Beholder<T>
 
     return false;
   }
-  
+
   @Override
   public boolean fjern(T verdi)
   {
     throw new UnsupportedOperationException("Ikke kodet ennå!");
   }
-  
+
   public int fjernAlle(T verdi)
   {
     throw new UnsupportedOperationException("Ikke kodet ennå!");
   }
-  
+
   @Override
   public int antall()
   {
     return antall;
   }
-  
+
   public int antall(T verdi)
   {
     if (tom()){
@@ -134,19 +134,19 @@ public class ObligSBinTre<T> implements Beholder<T>
 
     return telle;
   }
-  
+
   @Override
   public boolean tom()
   {
     return antall == 0;
   }
-  
+
   @Override
   public void nullstill()
   {
     throw new UnsupportedOperationException("Ikke kodet ennå!");
   }
-  
+
   private static <T> Node<T> nesteInorden(Node<T> p) {
     if (p.høyre != null) {
       p = p.høyre;
@@ -162,7 +162,7 @@ public class ObligSBinTre<T> implements Beholder<T>
     }
       return p;
   }
-  
+
   @Override
   public String toString()
   {
@@ -185,66 +185,173 @@ public class ObligSBinTre<T> implements Beholder<T>
     str.append("]");
     return str.toString();
   }
-  
+
   public String omvendtString()
   {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    if (tom()) return "[]";
+
+    StringBuilder str = new StringBuilder();
+    str.append("[");
+
+    Stakk<Node<T>> stakk = new TabellStakk<>();
+    Node<T> p = rot;
+    for ( ; p.høyre != null; p = p.høyre){
+      stakk.leggInn(p);
+    }
+    while (true){
+      if (str.length() > 1){
+        str.append(", " + p.verdi);
+      }
+      else {
+        str.append(p.verdi);
+      }
+      if (p.venstre != null){
+        for (p = p.venstre; p.høyre != null; p = p.høyre){
+          stakk.leggInn(p);
+        }
+      }
+      else if (!stakk.tom()){
+        p = stakk.taUt();
+      }
+      else break; //stakken er tom
+
+      //FORTSETTELSE HER: Breaker ut av løkka hvis vi starter i en verdi uten venstrebarn. Men det gjør vi jo ikke, siden vi starter i rot?
+      //
+    }
+    str.append("]");
+    return str.toString();
   }
-  
+
   public String høyreGren()
   {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    if (tom()) return "[]";
+
+    StringBuilder str = new StringBuilder();
+    str.append("[");
+    Stakk<Node<T>> stakk = new TabellStakk<>();
+    Node<T> p = rot;
+
+    while (true){
+      if (str.length() > 1){
+        str.append(", " + p.verdi);
+      }
+      else {
+        str.append(p.verdi);
+      }
+      if (p.høyre != null){
+        for (p = p.høyre; p.høyre != null;){
+          stakk.leggInn(p);
+        }
+      }
+      else if (!stakk.tom()){
+        p = stakk.taUt();
+      }
+      else break;
+    }
+    str.append("]");
+    return str.toString();
   }
-  
+
   public String lengstGren()
   {
     throw new UnsupportedOperationException("Ikke kodet ennå!");
   }
-  
+
   public String[] grener()
   {
     throw new UnsupportedOperationException("Ikke kodet ennå!");
   }
-  
+
   public String bladnodeverdier()
   {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    if (tom()) return "[]";
+
+    StringBuilder str = new StringBuilder();
+    str.append("[");
+    Node<T> p = rot;
+    while (p.venstre != null){
+      p = p.venstre;
+    }
+    if (nesteInorden(p) == null){
+      str.append(p.verdi);
+    }
+    else while (nesteInorden(p) != null){
+      p = nesteInorden(p);
+      if (p.høyre == null && p.venstre == null){
+        if (str.length() > 1) str.append(", " + p.verdi);
+        else str.append(p.verdi);
+      }
+    }
+    str.append("]");
+    return str.toString();
   }
-  
+
   public String postString()
   {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    if (tom()) return "[]";
+
+    StringBuilder str = new StringBuilder();
+    str.append("[");
+
+    TabellStakk<Node<T>> stakk = new TabellStakk<>();
+    Node<T> p = rot;
+    stakk.leggInn(p);
+    str.append(p.verdi);
+
+    /*while (true){
+      if (p.venstre != null){
+        p = p.venstre;
+      }
+      else if (p.høyre != null){
+        p = p.høyre;
+      }
+      else {
+        stakk.leggInn(p);
+        break;
+      }
+    }*/
+
+    while (!stakk.tom()){
+      p = stakk.taUt();
+      str.append(", " + p.verdi);
+
+      if (p.venstre != null) stakk.leggInn(p.venstre);
+      if (p.høyre != null) stakk.leggInn(p.høyre);
+    }
+
+    str.append("]");
+    return str.toString();
   }
-  
+
   @Override
   public Iterator<T> iterator()
   {
     return new BladnodeIterator();
   }
-  
+
   private class BladnodeIterator implements Iterator<T>
   {
     private Node<T> p = rot, q = null;
     private boolean removeOK = false;
     private int iteratorendringer = endringer;
-    
+
     private BladnodeIterator()  // konstruktør
     {
       throw new UnsupportedOperationException("Ikke kodet ennå!");
     }
-    
+
     @Override
     public boolean hasNext()
     {
       return p != null;  // Denne skal ikke endres!
     }
-    
+
     @Override
     public T next()
     {
       throw new UnsupportedOperationException("Ikke kodet ennå!");
     }
-    
+
     @Override
     public void remove()
     {

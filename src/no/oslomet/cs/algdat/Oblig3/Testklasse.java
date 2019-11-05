@@ -34,4 +34,23 @@ public class Testklasse {
         for ( int verdi : a) tre.leggInn(verdi);
         System. out .println(tre); // [1, 2, 4, 4, 4, 6, 7, 7, 8, 9, 10]
     }
+
+    @Test
+    void oppgave4(){
+        int [] a = {4,7,2,9,4,10,8,7,4,6,1};
+        ObligSBinTre<Integer> tre = new ObligSBinTre<>(Comparator. naturalOrder ());
+        for ( int verdi : a) tre.leggInn(verdi);
+        System. out .println(tre.omvendtString()); // [10, 9, 8, 7, 7, 6, 4, 4, 4, 2, 1]
+    }
+
+    @Test
+    void oppgave8ab(){
+        ObligSBinTre<Character> tre = new ObligSBinTre<>(Comparator. naturalOrder ());
+        char [] verdier = "IATBHJCRSOFELKGDMPQN" .toCharArray();
+        for ( char c : verdier) tre.leggInn(c);
+        System.out.println(tre.bladnodeverdier());
+        System. out .println(tre.postString());
+// [D, E, G, F, C, H, B, A, K, N, M, L, Q, P, O, S, R, J, T, I]
+
+    }
 }
