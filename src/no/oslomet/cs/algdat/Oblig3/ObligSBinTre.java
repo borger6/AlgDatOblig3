@@ -538,7 +538,7 @@ public class ObligSBinTre<T> implements Beholder<T>
       return p != null;  // Denne skal ikke endres!
     }
 
-    public Node nesteBlad(Node<T> p){
+    public Node<T> nesteBlad(Node<T> p){
           if (p.venstre == null && p.høyre == null){
               return p;
           }
@@ -567,7 +567,7 @@ public class ObligSBinTre<T> implements Beholder<T>
             p = p.høyre;
             next();
         }*/
-        return p.verdi;
+        return nesteBlad(p);
     }
 
     @Override
